@@ -647,6 +647,18 @@ figure.tbl.wide img{max-width:none;width:min(1400px,240%)}
 .hlhint{font-size:12px;color:var(--faint)}
 @media (pointer:coarse){.hlhint{display:none}}
 
+/* 법리 사이 간격·글자 크기 */
+.ctext li{margin:0 0 9px!important;line-height:1.75}
+.ctext li:last-child{margin-bottom:0!important}
+.ctext,.ctext li{font-size:calc(16px * var(--rs,1))}
+section.sec>h3{font-size:calc(17px * var(--rs,1))}
+.cno{font-size:calc(15px * var(--rs,1))!important}
+.rsz{display:inline-flex;align-items:center;gap:2px;flex:none}
+.rsz button{font:inherit;font-size:13px;border:0;background:none;color:var(--muted);padding:6px 4px;cursor:pointer}
+.rsz button:disabled{opacity:.35;cursor:default}
+.rsz span{font-size:12px;color:var(--faint);min-width:3.2em;text-align:center;font-variant-numeric:tabular-nums}
+body.outside .rsz{display:none}
+
 </style>
 </head>
 <body>
@@ -658,6 +670,7 @@ figure.tbl.wide img{max-width:none;width:min(1400px,240%)}
     <input id="q" name="q" type="search" placeholder="죄명이나 키워드…" autocomplete="off" spellcheck="false">
     <span class="hits" id="hits"></span>
   </div>
+  <span class="rsz" role="group" aria-label="글자 크기"><button type="button" id="rs-dn" aria-label="글자 작게">가−</button><span id="rs-lv">100%</span><button type="button" id="rs-up" aria-label="글자 크게">가+</button></span>
   <button class="tocbtn" id="tocbtn" type="button">목차</button>
 </div></header>
 <div class="wrap">
@@ -1189,6 +1202,11 @@ const OX=(()=>{
   $('bk-dl').onclick=()=>{const blob=new Blob([JSON.stringify({v:1,at:new Date().toISOString(),data:keys()})],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='검찰실무-기록-'+new Date().toISOString().slice(0,10)+'.json';document.body.append(a);a.click();a.remove();st.textContent='파일을 저장했습니다';};
   $('bk-in').onclick=()=>{try{const o=JSON.parse(ta.value);const d=o.data||o;let n=0;for(const k in d){if(/^gs-/.test(k)){localStorage.setItem(k,typeof d[k]==='string'?d[k]:JSON.stringify(d[k]));n++;}}st.textContent=n?`${n}개 항목을 가져왔습니다. 새로고침합니다`:'가져올 항목이 없습니다';if(n)setTimeout(()=>location.reload(),700);}catch(e){st.textContent='백업 내용이 올바르지 않습니다';}};
 })();
+
+/* ---------- 요론집 글자 크기 ---------- */
+(()=>{const L=[85,92,100,108,116,126,138];let i=LS.get('gs-rs',2);if(!(i>=0&&i<L.length))i=2;
+  const ap=()=>{document.documentElement.style.setProperty('--rs',L[i]/100);$('rs-lv').textContent=L[i]+'%';$('rs-dn').disabled=i<=0;$('rs-up').disabled=i>=L.length-1;LS.set('gs-rs',i);};
+  $('rs-dn').onclick=()=>{if(i>0){i--;ap();}};$('rs-up').onclick=()=>{if(i<L.length-1){i++;ap();}};ap();})();
 
 route();
 })();
