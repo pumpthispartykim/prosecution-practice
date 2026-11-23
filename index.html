@@ -685,6 +685,8 @@ body.outside .tocfoldbtn{display:none!important}
 .medit textarea{font-size:calc(14px * var(--rs,1))}
 .mylist{max-width:none}
 
+.syncst{font-size:12px;color:var(--faint);margin:28px 0 0}
+
 </style>
 </head>
 <body>
@@ -882,7 +884,7 @@ D.forEach((ch,ci)=>{
     s.figs.forEach(f=>{html+=`<figure class="tbl${/card/.test(f.src)?' wide':''}"><img src="${f.src}" alt="${esc(f.cap)}" loading="lazy"><figcaption>${esc(f.cap)} · 누르면 크게 보기</figcaption></figure>`;});
     s.entries.forEach((e,ei)=>{
       html+=`<article class="case" id="e${gi}_${ei}"><div class="chead">${e.h?`<a class="cno" href="#e${gi}_${ei}">${esc(e.h)}</a>`:`<span class="cno none">${esc(s.title.replace(/\s*\(.*$/,''))}</span>`}<button type="button" class="mbtn" data-act="open">메모 쓰기</button></div><div class="ctext"><ol>`+
-        e.props.map((p,pi)=>`<li id="${p.id}"><span class="n">${/^[①-⑳]/.test(p.t)?"":"·"}</span><span class="tx">${caseHTML(byId[p.id].t)}${byId[p.id].nw?'<span class="nwb">추가</span>':''}</span></li>`).join('')+`</ol></div><div class="mymemo hide" data-act="open"></div><div class="medit hide"><textarea placeholder="이 쟁점에 대한 메모 (암기 팁, 헷갈리는 점, 관련 판례 등) · Ctrl+Enter 저장"></textarea><div class="mrow"><button type="button" class="save" data-act="save">저장</button><button type="button" data-act="cancel">취소</button><button type="button" class="del" data-act="del">메모 지우기</button><span class="st"></span></div></div></article>`;
+        e.props.map((p,pi)=>`<li id="${p.id}"><span class="n">${/^[①-⑳]/.test(p.t)?"":"·"}</span><span class="tx">${caseHTML(byId[p.id].t)}</span></li>`).join('')+`</ol></div><div class="mymemo hide" data-act="open"></div><div class="medit hide"><textarea placeholder="이 쟁점에 대한 메모 (암기 팁, 헷갈리는 점, 관련 판례 등) · Ctrl+Enter 저장"></textarea><div class="mrow"><button type="button" class="save" data-act="save">저장</button><button type="button" data-act="cancel">취소</button><button type="button" class="del" data-act="del">메모 지우기</button><span class="st"></span></div></div></article>`;
     });
     html+=`</section>`;
   });
