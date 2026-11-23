@@ -1182,7 +1182,7 @@ const OX=(()=>{
 })();
 
 /* ---------- 백업·복원 ---------- */
-(()=>{const st=$('bk-st'),ta=$('bk-txt');if(!ta)return;
+(()=>{const st=$('bk-st'),ta=$('bk-txt');if(!ta)return;try{if(window.self!==window.top)$('bk-dl').hidden=true;}catch(e){$('bk-dl').hidden=true;}
   const keys=()=>{const o={};try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(/^gs-/.test(k))o[k]=localStorage.getItem(k);}}catch(e){}return o;};
   $('bk-out').onclick=()=>{ta.value=JSON.stringify({v:1,at:new Date().toISOString(),data:keys()});ta.select();
     try{navigator.clipboard.writeText(ta.value).then(()=>st.textContent='복사했습니다',()=>st.textContent='아래 내용을 복사하세요');}catch(e){st.textContent='아래 내용을 복사하세요';}};
