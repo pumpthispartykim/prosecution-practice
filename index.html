@@ -676,6 +676,15 @@ body.outside .tocfoldbtn{display:none!important}
 
 @media (min-width:861px){body:not(.outside) .tocfoldbtn{display:inline-flex}}
 
+/* 메모 */
+.chead .mbtn{margin-left:auto;font-size:12px!important;border:1px solid var(--line)!important;border-radius:6px;padding:1px 9px!important;background:none;color:var(--faint);cursor:pointer;opacity:.75}
+.chead .mbtn:hover{opacity:1;color:var(--ink)}
+.chead .mbtn.has{opacity:1;color:var(--accent);border-color:var(--accent)!important}
+.mymemo,.medit{max-width:none!important;font-size:calc(14px * var(--rs,1))}
+.mymemo.hide,.medit.hide{display:none!important}
+.medit textarea{font-size:calc(14px * var(--rs,1))}
+.mylist{max-width:none}
+
 </style>
 </head>
 <body>
@@ -866,15 +875,15 @@ const pgRange=ch=>{const p=ch.sections.map(s=>s.pg).filter(x=>x!=null);if(!p.len
 let html='';
 html+=`<div id="wiki" class="off"><p class="crumb"><a href="#home">처음</a> › 요론집</p><div class="hero"><h2>형법 요론집</h2><p>법리 ${ITEMS.length}개 · ${D.length}개 장 · ${SECS.length}개 항목. 원문의 굵은 글씨는 굵게 살렸습니다.</p></div><div class="grid">`+
  D.map((ch,ci)=>{const sub=ch.sections.slice(0,4).map(s=>esc(s.title.replace(/\s*\(.*$/,''))).join(' · ')+(ch.sections.length>4?' …':'');
-  return `<a class="card" href="#c${ci}"><span class="t">${esc(ch.title)}</span><span class="m">법리 ${chCount(ch)}개 · ${pgRange(ch)}</span><span class="s">${sub}</span></a>`;}).join('')+`</div></div>`;
+  return `<a class="card" href="#c${ci}"><span class="t">${esc(ch.title)}</span><span class="m">법리 ${chCount(ch)}개 · ${pgRange(ch)}</span><span class="s">${sub}</span></a>`;}).join('')+`</div><h3 class="hh">내 메모</h3><div class="mylist" id="mylist"></div></div>`;
 D.forEach((ch,ci)=>{
   html+=`<div class="chapter off" id="c${ci}"><p class="crumb"><a href="#home">처음</a> › <a href="#wiki">요론집</a></p><h2>${esc(ch.title)}</h2><p class="sub">법리 ${chCount(ch)}개 · ${pgRange(ch)} · <button type="button" class="kwtog" aria-pressed="false">핵심어 표시</button> · <span class="hlhint">문장을 드래그하면 형광펜(1~6 키)</span></p>`;
   ch.sections.forEach((s,k)=>{const gi=secStart[ci]+k;
     html+=`<section class="sec" id="s${gi}"><h3>${esc(s.title)}${s.pg!=null?`<span class="pg">원문 ${s.pg}쪽</span>`:`<span class="pg">교재 추가 항목</span>`}</h3>`;
     s.figs.forEach(f=>{html+=`<figure class="tbl${/card/.test(f.src)?' wide':''}"><img src="${f.src}" alt="${esc(f.cap)}" loading="lazy"><figcaption>${esc(f.cap)} · 누르면 크게 보기</figcaption></figure>`;});
     s.entries.forEach((e,ei)=>{
-      html+=`<article class="case" id="e${gi}_${ei}"><div class="chead">${e.h?`<a class="cno" href="#e${gi}_${ei}">${esc(e.h)}</a>`:`<span class="cno none">${esc(s.title.replace(/\s*\(.*$/,''))}</span>`}</div><div class="ctext"><ol>`+
-        e.props.map((p,pi)=>`<li id="${p.id}"><span class="n">${/^[①-⑳]/.test(p.t)?"":"·"}</span><span class="tx">${caseHTML(byId[p.id].t)}${byId[p.id].nw?'<span class="nwb">추가</span>':''}</span></li>`).join('')+`</ol></div></article>`;
+      html+=`<article class="case" id="e${gi}_${ei}"><div class="chead">${e.h?`<a class="cno" href="#e${gi}_${ei}">${esc(e.h)}</a>`:`<span class="cno none">${esc(s.title.replace(/\s*\(.*$/,''))}</span>`}<button type="button" class="mbtn" data-act="open">메모 쓰기</button></div><div class="ctext"><ol>`+
+        e.props.map((p,pi)=>`<li id="${p.id}"><span class="n">${/^[①-⑳]/.test(p.t)?"":"·"}</span><span class="tx">${caseHTML(byId[p.id].t)}${byId[p.id].nw?'<span class="nwb">추가</span>':''}</span></li>`).join('')+`</ol></div><div class="mymemo hide" data-act="open"></div><div class="medit hide"><textarea placeholder="이 쟁점에 대한 메모 (암기 팁, 헷갈리는 점, 관련 판례 등) · Ctrl+Enter 저장"></textarea><div class="mrow"><button type="button" class="save" data-act="save">저장</button><button type="button" data-act="cancel">취소</button><button type="button" class="del" data-act="del">메모 지우기</button><span class="st"></span></div></div></article>`;
     });
     html+=`</section>`;
   });
@@ -928,6 +937,32 @@ $('tocbtn').addEventListener('click',()=>document.body.classList.add('tocopen'))
 $('tocclose').addEventListener('click',()=>document.body.classList.remove('tocopen'));
 toc.addEventListener('click',e=>{if(e.target.closest('a'))document.body.classList.remove('tocopen');});
 
+
+/* ---------- 메모 (쟁점별, 이 브라우저에 저장) ---------- */
+let MEMO=LS.get('gs-memo',{});if(!MEMO||typeof MEMO!=='object')MEMO={};
+document.body.classList.add('memo-on');
+arts.forEach(a=>{a._base=a._s;});
+function paintMemo(){
+  arts.forEach(a=>{const m=MEMO[a.id],box=a.querySelector('.mymemo'),b=a.querySelector('.mbtn');
+    if(m&&m.text){box.innerHTML='<b>내 메모</b>'+esc(m.text);box.classList.remove('hide');b.textContent='메모 고치기';b.classList.add('has');}
+    else{box.classList.add('hide');box.innerHTML='';b.textContent='메모 쓰기';b.classList.remove('has');}
+    a._s=a._base+' '+(m&&m.text?m.text.toLowerCase():'');});
+  const ks=Object.keys(MEMO).filter(k=>MEMO[k]&&MEMO[k].text&&document.getElementById(k)).sort((x,y)=>(MEMO[y].t||0)-(MEMO[x].t||0));
+  $('mylist').innerHTML=ks.length?ks.map(k=>{const el=document.getElementById(k);const sec=el.closest('section.sec');const h=(el.querySelector('.cno')||{}).textContent||'';const t=MEMO[k].text;
+    return `<a href="#${k}"><b>${esc(sec?sec.querySelector('h3').firstChild.textContent.replace(/\s*\(.*$/,''):'')} › ${esc(h)}</b><span>${esc(t.length>80?t.slice(0,80)+'…':t)}</span></a>`;}).join(''):'<p class="muted">아직 남긴 메모가 없습니다. 각 쟁점 제목 옆 "메모 쓰기"를 눌러 남겨 보세요.</p>';
+}
+function openEd(a){const ed=a.querySelector('.medit'),m=MEMO[a.id];ed.querySelector('textarea').value=m?m.text:'';ed.querySelector('.st').textContent='';
+  ed.querySelector('.del').classList.toggle('hide',!(m&&m.text));ed.classList.remove('hide');a.querySelector('.mymemo').classList.add('hide');ed.querySelector('textarea').focus();}
+function closeEd(a){a.querySelector('.medit').classList.add('hide');paintMemo();}
+main.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const a=b.closest('.case');if(!a)return;
+  if(b.classList.contains('mymemo')&&window.getSelection&&!window.getSelection().isCollapsed)return;
+  const act=b.dataset.act;if(act==='open')return openEd(a);if(act==='cancel')return closeEd(a);
+  const ed=a.querySelector('.medit'),st=ed.querySelector('.st');const text=act==='del'?'':ed.querySelector('textarea').value.trim();
+  const next={...MEMO};if(text)next[a.id]={text,t:Date.now()};else delete next[a.id];
+  try{localStorage.setItem('gs-memo',JSON.stringify(next));MEMO=next;closeEd(a);}catch(err){st.textContent='저장하지 못했습니다(브라우저 저장 공간 확인).';}
+});
+main.addEventListener('keydown',e=>{if(e.target.matches('.medit textarea')&&(e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();e.target.closest('.medit').querySelector('.save').click();}});
+paintMemo();
 
 /* ---------- 형광펜 (형사재판실무와 같은 방식, 이 브라우저에 저장) ---------- */
 const HLC=['y','g','p','b','o','v'];
@@ -1043,7 +1078,7 @@ window.addEventListener('hashchange',route);
 
 /* ---------- 처음 화면 ---------- */
 function homeRefresh(){
-  $('n-p').textContent=ITEMS.length;$('n-s').textContent=SECS.length;$('n-o').textContent=OXP.length;$('m-wiki').textContent=`${D.length}개 장 · 법리 ${ITEMS.length}개 · 표 4개`;
+  $('n-p').textContent=ITEMS.length;$('n-s').textContent=SECS.length;$('n-o').textContent=OXP.length;$('m-wiki').textContent=`${D.length}개 장 · 법리 ${ITEMS.length}개 · 표 4개`+(()=>{const n=Object.values(LS.get('gs-memo',{})).filter(m=>m&&m.text).length;return n?` · 내 메모 ${n}건`:'';})();
   const kn=LS.get('gs-fc-known',{});const nk=Object.values(kn).filter(v=>v==='k').length;
   const os=LS.get('gs-ox-stats',{});let solved=0,wrong=0;Object.values(os).forEach(s=>{if(s[0]+s[1])solved++;if(s[1]>0)wrong++;});
   const pct=(a,b)=>b?Math.round(a*100/b):0;
