@@ -659,10 +659,28 @@ section.sec>h3{font-size:calc(17px * var(--rs,1))}
 .rsz span{font-size:12px;color:var(--faint);min-width:3.2em;text-align:center;font-variant-numeric:tabular-nums}
 body.outside .rsz{display:none}
 
+/* 넓은 화면 활용 + PC 목차 접기 */
+html body .wrap{max-width:none;padding:0 clamp(16px,2.5vw,48px)}
+@media (min-width:861px){html body .wrap{grid-template-columns:clamp(260px,18vw,340px) minmax(0,1fr);gap:clamp(24px,2.5vw,56px)}html body.outside .wrap{grid-template-columns:minmax(0,1fr)}}
+html body .topin{max-width:none;padding:12px clamp(16px,2.5vw,48px)}
+html body .ctext,html body .note{max-width:none}
+body.outside .wrap{grid-template-columns:minmax(0,1fr)}
+@media (min-width:861px){
+  body.tocfold:not(.outside) .wrap{grid-template-columns:0 minmax(0,1fr);gap:0}
+  body.tocfold:not(.outside) nav.toc{visibility:hidden;width:0;padding:0;overflow:hidden}
+}
+.tocfoldbtn{display:none;align-items:center;gap:4px;flex:none;border:0;background:none;color:var(--muted);font:inherit;font-size:13px;padding:6px 2px;cursor:pointer}
+.tocfoldbtn:hover{color:var(--ink)}
+body.outside .tocfoldbtn{display:none!important}
+@media (max-width:860px){.tocfoldbtn{display:none!important}}
+
+@media (min-width:861px){body:not(.outside) .tocfoldbtn{display:inline-flex}}
+
 </style>
 </head>
 <body>
 <header class="top"><div class="topin">
+  <button type="button" class="tocfoldbtn" id="tocfold" aria-pressed="false" title="목차 접기/펴기 (\ 키)">☰ 목차 접기</button>
   <h1 class="brand"><a class="brand" href="#home">검찰실무</a></h1>
   <span class="stats" id="stats"></span>
   <div class="search">
@@ -1207,6 +1225,12 @@ const OX=(()=>{
 (()=>{const L=[85,92,100,108,116,126,138];let i=LS.get('gs-rs',2);if(!(i>=0&&i<L.length))i=2;
   const ap=()=>{document.documentElement.style.setProperty('--rs',L[i]/100);$('rs-lv').textContent=L[i]+'%';$('rs-dn').disabled=i<=0;$('rs-up').disabled=i>=L.length-1;LS.set('gs-rs',i);};
   $('rs-dn').onclick=()=>{if(i>0){i--;ap();}};$('rs-up').onclick=()=>{if(i<L.length-1){i++;ap();}};ap();})();
+
+/* ---------- PC 목차 접기 ---------- */
+(()=>{const b=$('tocfold');let f=LS.get('gs-tocfold',false);
+  const ap=()=>{document.body.classList.toggle('tocfold',f);b.setAttribute('aria-pressed',String(f));b.textContent=f?'☰ 목차 펴기':'☰ 목차 접기';LS.set('gs-tocfold',f);};
+  b.onclick=()=>{f=!f;ap();};ap();
+  document.addEventListener('keydown',e=>{if(e.key==='\\'&&!e.target.matches('input,textarea')&&!e.ctrlKey&&!e.metaKey){f=!f;ap();}});})();
 
 route();
 })();
